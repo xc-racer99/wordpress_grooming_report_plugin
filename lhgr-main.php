@@ -54,23 +54,77 @@ function gps_track_html($post)
 {
 // TODO: Create a mini-leaflet map if we already have a file uploaded...
     ?>
+    <p>Current GPX URL: <?php echo get_post_meta($post->ID, 'gpx_track_file', true); ?></p>
     <label for="gpx_upload">Upload GPX Track</label>
-    <input name="gpx_upload" id="gpx_upload" type="file" accept="gpx" />
+    <input name="gpx_upload" id="gpx_upload" type="file" />
     <?php
 }
 
-function lhgr_save_postdata($post_id)
+function lhgr_save_postdata($post_id, $post)
 {
+    // Get the post type. Since this function will run for ALL post saves (no matter what post type), we need to know this.
+    $post_type = $post->post_type;
 
-//TODO: Do this properly...
-    if (array_key_exists('gpx_upload', $_POST)) {
-        update_post_meta(
-            $post_id,
-            'gpx_track_file',
-            $_POST['gpx_upload'],
-            true
-        );
-    }
+    // Logic to handle specific post types
+    switch($post_type) {
+        // If this is a trail, handle it
+        case 'lhgr_trails':
+            // Create acceptable MIME types
+            $mimes = array();
+            $mimes['gpx|gpx1'] = 'text/xml';
+            $mimes['gpx|gpx2'] = 'application/xml';
+            $mimes['gpx|gpx3'] = 'application/gpx';
+            $mimes['gpx|gpx4'] = 'application/gpx+xml';
+
+            // If the upload field has a file in it
+            if(isset($_FILES['gpx_upload']) && ($_FILES['gpx_upload']['size'] > 0)) {
+                // If the uploaded file is the right format
+                $arr_file_type = wp_check_filetype(basename($_FILES['gpx_upload']['name']), $mimes);
+                $uploaded_file_type = $arr_file_type['ext'];
+
+                // Set an array containing a list of acceptable formats
+                $allowed_file_types = array('gpx');
+
+                // If the uploaded file is the right format
+                if(in_array($uploaded_file_type, $allowed_file_types)) {
+                    // Options array for the wp_handle_upload function.
+
+                    // FIXME This doesn't work for some reason, but we're already doing a bit of validation up above
+//                    $upload_overrides = array( 'test_form' => false, 'mimes' => $mimes );
+                    $upload_overrides = array( 'test_form' => false, 'test_type' => false, 'ext' => $arr_file_type['ext'], 'type' => $arr_file_type['type'] );
+
+                    // Handle the upload using WP's wp_handle_upload function. Takes the posted file and an options array
+                    $uploaded_file = wp_handle_upload($_FILES['gpx_upload'], $upload_overrides);
+
+                    // If the wp_handle_upload call returned a url for the gpx
+                    if(isset($uploaded_file['url'])) {
+                        // Update the post meta with the URL of the file
+                        update_post_meta($post_id, 'gpx_track_file', $uploaded_file['url'], true);
+                    } else { // wp_handle_upload returned some kind of error.
+                          // TODO
+error_log("got here 3 " . $uploaded_file['error']);
+                    }
+                } else { // wrong file type
+                    // TODO
+                }
+           } else { // No file was passed
+               // TODO
+           }
+        break;
+
+        // Not a trail, ignore
+        default:
+    } // End switch
+
+    return;
 }
-add_action('save_post', 'lhgr_save_postdata');
+add_action('save_post', 'lhgr_save_postdata', 1, 2);
+
+// To upload files, we need to change the form encoding type
+function lhgr_add_edit_form_multipart_encoding() {
+
+    echo ' enctype="multipart/form-data"';
+
+}
+add_action('post_edit_form_tag', 'lhgr_add_edit_form_multipart_encoding');
 ?>
