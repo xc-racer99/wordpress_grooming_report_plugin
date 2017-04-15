@@ -54,7 +54,8 @@ function gps_track_html($post)
 {
 // TODO: Create a mini-leaflet map if we already have a file uploaded...
     ?>
-    <p>Current GPX URL: <?php echo get_post_meta($post->ID, 'gpx_track_file', true); ?></p>
+    <p>Current GPX URL: <?php echo get_post_meta($post->ID, 'gpx_track_url', true); ?></p>
+    <p>Current GPX File: <?php echo get_post_meta($post->ID, 'gpx_track_file', true); ?></p>
     <label for="gpx_upload">Upload GPX Track</label>
     <input name="gpx_upload" id="gpx_upload" type="file" />
     <?php
@@ -69,7 +70,7 @@ function lhgr_save_postdata($post_id, $post)
     switch($post_type) {
         // If this is a trail, handle it
         case 'lhgr_trails':
-            // Create acceptable MIME types
+            // Create acceptable MIME types for GPX files
             $mimes = array();
             $mimes['gpx|gpx1'] = 'text/xml';
             $mimes['gpx|gpx2'] = 'application/xml';
@@ -88,10 +89,12 @@ function lhgr_save_postdata($post_id, $post)
                 // If the uploaded file is the right format
                 if(in_array($uploaded_file_type, $allowed_file_types)) {
                     // Options array for the wp_handle_upload function.
-
                     // FIXME This doesn't work for some reason, but we're already doing a bit of validation up above
 //                    $upload_overrides = array( 'test_form' => false, 'mimes' => $mimes );
                     $upload_overrides = array( 'test_form' => false, 'test_type' => false, 'ext' => $arr_file_type['ext'], 'type' => $arr_file_type['type'] );
+
+                    // Store the current uploaded file name so we can delete it
+                    $old_track = get_post_meta($post_id, 'gpx_track_file', true);
 
                     // Handle the upload using WP's wp_handle_upload function. Takes the posted file and an options array
                     $uploaded_file = wp_handle_upload($_FILES['gpx_upload'], $upload_overrides);
@@ -99,16 +102,21 @@ function lhgr_save_postdata($post_id, $post)
                     // If the wp_handle_upload call returned a url for the gpx
                     if(isset($uploaded_file['url'])) {
                         // Update the post meta with the URL of the file
-                        update_post_meta($post_id, 'gpx_track_file', $uploaded_file['url'], true);
+                        update_post_meta($post_id, 'gpx_track_url', $uploaded_file['url']);
+                        update_post_meta($post_id, 'gpx_track_file', $uploaded_file['file']);
+
+                        // Remove the old track, if it exists
+                        if ($old_track) {
+                            unlink($old_track);
+                        }
                     } else { // wp_handle_upload returned some kind of error.
                           // TODO
-error_log("got here 3 " . $uploaded_file['error']);
                     }
                 } else { // wrong file type
                     // TODO
                 }
-           } else { // No file was passed
-               // TODO
+           } else {
+               // No file was passed
            }
         break;
 
