@@ -36,6 +36,17 @@ function lhgr_create_post_type() {
 }
 add_action( 'init', 'lhgr_create_post_type' );
 
+// Remove the GPX track file when we permanently remove the trail
+function delete_gps_track_on_trail_removal($postid)
+{
+    $filename = get_post_meta($postid, 'gpx_track_file', true);
+
+    if( file_exists($filename) ) {
+        unlink($filename);
+    }
+}
+add_action('before_delete_post', 'delete_gps_track_on_trail_removal', 10, 1);
+
 function lhgr_add_meta_boxes()
 {
     $screens = ['lhgr_trails'];
