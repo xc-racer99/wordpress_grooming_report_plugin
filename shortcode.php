@@ -17,7 +17,6 @@ function initializeMap() {
 		attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 	}).addTo(mymap);
 EOD;
-
 		// Get a list of all "Trails" entries
 		$query = new WP_Query(array(
 			'post_type' => 'lhgr_trails',
@@ -65,6 +64,8 @@ EOD;
 	<th>Current Date</th>
 </tr>
 EOD;
+		$trail_categories = array();
+
 		// Get all the trails and add them to the list
 		$query = new WP_Query(array(
 			'post_type' => 'lhgr_trails',
@@ -76,15 +77,31 @@ EOD;
 			$query->the_post();
 			$post_id = get_the_ID();
 
-			$comment = get_post_meta($post_id, 'comment');
-			$groomed = get_post_meta($post_id, 'groomed_date');
+			$categories = get_the_category();
 
-			$content .= '<tr><td>' . get_the_title() . '</td>';
-			$content .= '<td><input type="checkbox" name="' . $post_id . 'groomed" value="groomed" ></td>';
-			$content .= '<td><input type="text" name="' . $post_id . 'comment" /></td>';
-			$content .= '<td>' . end($groomed) . '</td></tr>';
+			$groomed = get_post_meta($post_id, 'groomer_entry');
+
+			foreach ($categories as $category) {
+				$trail_categories[$category->name][] = array(get_the_title(), $post_id, $category->name, $groomed);
+			}
 		}
 		wp_reset_query();
+
+		foreach( $trail_categories as $trail_category) {
+			// Sort the array alphabetically
+			natcasesort($trail_category);
+
+			$content .= '<tr><th colspan="3">' . $trail_category[0][2] . '</th></tr>';
+
+			foreach( $trail_category as $trail ) {
+				$content .= '<tr><td>' . $trail[0] . '</td>';
+				// TODO - Make sure we don't have doubled ID values if something is part of multiple categories...
+				$content .= '<td><input type="checkbox" name="' . $trail[1] . 'groomed" value="groomed" ></td>';
+				$content .= '<td><input type="text" name="' . $trail[1] . 'comment" /></td>';
+				// TODO - Determine how $groomed array is formatted, and get the last one that actually has a date...
+				$content .= '<td>' . end($trail[3]) . '</td></tr>';
+			}
+		}
 
 		$content .= '</table>';
 
