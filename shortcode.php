@@ -42,6 +42,55 @@ EOD;
 		return $content;
 	}
 	add_shortcode('lhgr_map', 'lhgr_map_shortcode');
+
+	function lhgr_groomers_entry($atts = [], $content = null)
+	{
+		$content = <<<EOD
+<form method="post" accept-charset="UTF-8" autocomplete="off" >
+<fieldset>
+	<legend>Date of Grooming</legend>
+	<input type="radio" name="date" id="today" value="today" checked>
+	<label for="today" style="display: inline;" >Today</label><br />
+	<input type="radio" name="date" id="yesterday" value="yesterday">
+	<label for="yesterday" style="display: inline;" >Yesterday</label><br />
+	<input type="radio" name="date" id="two_days_ago" value="two_days_ago">
+	<label for="two_days_ago" style="display: inline;" >Two Days Ago</label>
+</fieldset>
+
+<table>
+<tr>
+	<th>Trail Name</th>
+	<th>Groomed?</th>
+	<th>Comments</th>
+	<th>Current Date</th>
+</tr>
+EOD;
+		// Get all the trails and add them to the list
+		$query = new WP_Query(array(
+			'post_type' => 'lhgr_trails',
+			'post_status' => 'publish',
+			'posts_per_page' => -1
+		));
+
+		while ($query->have_posts()) {
+			$query->the_post();
+			$post_id = get_the_ID();
+
+			$comment = get_post_meta($post_id, 'comment');
+			$groomed = get_post_meta($post_id, 'groomed_date');
+
+			$content .= '<tr><td>' . get_the_title() . '</td>';
+			$content .= '<td><input type="checkbox" name="' . $post_id . 'groomed" value="groomed"></td>';
+			$content .= '<td><input type="text" name="' . $post_id . 'comment"></td>';
+			$content .= '<td>' . end($groomed) . '</td></tr>';
+		}
+		wp_reset_query();
+
+		$content .= '</table></form>';
+
+		return $content;
+	}
+	add_shortcode('lhgr_groomer_entry', 'lhgr_groomers_entry');
 }
 add_action('init', 'lhgr_shortcode_init');
 
