@@ -44,8 +44,11 @@ EOD;
 
 	function lhgr_groomers_entry($atts = [], $content = null)
 	{
+		$action = esc_url( admin_url('admin-post.php') );
+
 		$content = <<<EOD
-<form method="post" accept-charset="UTF-8" autocomplete="off" >
+<form action="$action" method="post" accept-charset="UTF-8" autocomplete="off" >
+<input type="hidden" name="action" value="lhgr_groomer_entry">
 <fieldset>
 	<legend>Date of Grooming</legend>
 	<input type="radio" name="date" id="today" value="today" checked>
