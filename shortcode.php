@@ -16,11 +16,28 @@ function initializeMap() {
 		maxZoom: 19,
 		attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 	}).addTo(mymap);
-
-	omnivore.gpx('https://xc-racer2.duckdns.org/plugins/wp-content/uploads/2017/04/alder_lane.gpx').addTo(mymap);
-}
-</script>
 EOD;
+
+		// Get a list of all "Trails" entries
+		$query = new WP_Query(array(
+			'post_type' => 'lhgr_trails',
+			'post_status' => 'publish',
+			'posts_per_page' => -1
+		));
+
+		while ($query->have_posts()) {
+			$query->the_post();
+			$post_id = get_the_ID();
+
+			$gps_track = get_post_meta($post_id, 'gpx_track_url', true);
+
+			if ($gps_track) {
+				$content .= 'omnivore.gpx("' . $gps_track . '").addTo(mymap);';
+			}
+		}
+		wp_reset_query();
+
+		$content .= '}</script>';
 
 		return $content;
 	}
