@@ -80,14 +80,15 @@ EOD;
 			$groomed = get_post_meta($post_id, 'groomed_date');
 
 			$content .= '<tr><td>' . get_the_title() . '</td>';
-			$content .= '<td><input type="checkbox" name="' . $post_id . 'groomed" value="groomed"></td>';
-			$content .= '<td><input type="text" name="' . $post_id . 'comment"></td>';
+			$content .= '<td><input type="checkbox" name="' . $post_id . 'groomed" value="groomed" ></td>';
+			$content .= '<td><input type="text" name="' . $post_id . 'comment" /></td>';
 			$content .= '<td>' . end($groomed) . '</td></tr>';
 		}
 		wp_reset_query();
 
-		$content .= '</table></form>';
+		$content .= '</table>';
 
+		$content .= '<input type="submit" value="Submit" /></form>';
 		return $content;
 	}
 	add_shortcode('lhgr_groomer_entry', 'lhgr_groomers_entry');
@@ -100,7 +101,6 @@ function lhgr_register_resources()
 	// The main leaflet resources
 	wp_register_script('leaflet-base-js', '//unpkg.com/leaflet@1.0.3/dist/leaflet.js', null, '1.0.3');
 	wp_register_style('leaflet-base-css', '//unpkg.com/leaflet@1.0.3/dist/leaflet.css', null, '1.0.3');
-
 
 	// Leaflet omnivore
 	wp_register_script('leaflet-omnivore', '//api.tiles.mapbox.com/mapbox.js/plugins/leaflet-omnivore/v0.3.1/leaflet-omnivore.min.js', array('leaflet-base-js'), '0.3.1');
