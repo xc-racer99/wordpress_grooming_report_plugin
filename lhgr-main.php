@@ -5,6 +5,9 @@ Version: 1.0
 License: GPLv2
 */
 
+// Include our shortcode generation file
+require_once( 'shortcode.php' );
+
 // register custom post type to work with
 function lhgr_create_post_type() {
 	// set up labels
