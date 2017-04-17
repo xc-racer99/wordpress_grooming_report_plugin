@@ -65,6 +65,7 @@ EOD;
 	<th>Groomed?</th>
 	<th>Comments</th>
 	<th>Current Date</th>
+	<th>Current Comment</th>
 </tr>
 EOD;
 		$trail_categories = array();
@@ -101,7 +102,8 @@ EOD;
 				// TODO - Make sure we don't have doubled ID values if something is part of multiple categories...
 				$content .= '<td><input type="checkbox" name="groomed[' . $trail[1] . ']" value="groomed" ></td>';
 				$content .= '<td><input type="text" name="comment[' . $trail[1] . ']"/></td>';
-				$content .= '<td>' . end($trail[3])[0] . '</td></tr>';
+				$content .= '<td>' . end($trail[3])[0] . '</td>';
+				$content .= '<td>' . end($trail[3])[1] . '</td></tr>';
 			}
 		}
 
