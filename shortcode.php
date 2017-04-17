@@ -90,6 +90,41 @@ EOD;
 	}
 	add_shortcode('lhgr_map', 'lhgr_map_shortcode');
 
+	function lhgr_list_shortcode($atts = [], $content = null)
+	{
+
+		$table_header = <<<EOT
+<table>
+	<tr>
+		<th>Trail Name</th>
+		<th>Last Groomed</th>
+		<th>Comment</th>
+	</tr>
+EOT;
+
+		$trail_categories = lhgr_get_all_trail_info();
+
+		foreach( $trail_categories as $key => $trail_category ) {
+			$content .= '<h4>' . $key . '</h4>';
+
+			$content .= $table_header;
+
+			// Sort the array alphabetically
+			natcasesort($trail_category);
+
+			foreach( $trail_category as $trail ) {
+				$content .= '<tr><td>' . $trail[1] . '</td>';
+				$content .= '<td>' . $trail[3] . '</td>';
+				$content .= '<td>' . $trail[4] . '</td></tr>';
+			}
+
+			$content .= '</table>';
+		}
+
+		return $content;
+	}
+	add_shortcode('lhgr_list', 'lhgr_list_shortcode');
+
 	function lhgr_groomers_entry($atts = [], $content = null)
 	{
 		$action = esc_url( admin_url('admin-post.php') );

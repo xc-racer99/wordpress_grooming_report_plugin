@@ -1,5 +1,6 @@
 <?php
-/*Plugin Name: Grooming Report Plugin
+/*
+Plugin Name: Grooming Report Plugin
 Description: This plugin registers the 'lhgr_trails' post type.
 Version: 1.0
 License: GPLv2
