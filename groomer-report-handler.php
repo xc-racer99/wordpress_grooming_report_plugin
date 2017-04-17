@@ -1,12 +1,12 @@
 <?php
 function add_groomer_entry_data() {
-    /**
-     * At this point, $_GET/$_POST variable are available
-     *
-     * We can do our normal processing here
-     */
+	/**
+	 * At this point, $_GET/$_POST variable are available
+	 *
+	 * We can do our normal processing here
+	 */
 
-    // Sanitize the POST field
+	// Sanitize the POST field
 	// Generate the correct date to use
 	$date = current_time("Y-m-d");
 	if ( $_POST[date] == "yesterday" ) {
@@ -16,10 +16,9 @@ function add_groomer_entry_data() {
 	}
 
 	// Deal with each of the trails
-	foreach( $_POST['groomed'] as $entry ) {
+	foreach( $_POST['groomed'] as $trail_id => $entry ) {
 		if ($entry == 'groomed') {
-			$trail_id = key($_POST['groomed']);
-			add_post_meta($trail_id, 'groomer_entry', array($date, $_POST['comment'][$trail_id]));
+			add_post_meta($trail_id, 'groomer_entry', array($date, sanitize_text_field($_POST['comment'][$trail_id])));
 
 			// Remove the comment field so we don't add another entry
 			unset($_POST['comment'][$trail_id]);
@@ -27,14 +26,22 @@ function add_groomer_entry_data() {
 	}
 
 	// Now deal with any remaining comments that don't have a date, ie weren't groomed
-	foreach( $_POST['comment'] as $comment ) {
+	foreach( $_POST['comment'] as $trail_id => $comment ) {
 		if ( !empty($comment) ) {
-			$trail_id = key($_POST['comment']);
-			add_post_meta($trail_id, 'groomer_entry', array( '', $comment));
+			add_post_meta($trail_id, 'groomer_entry', array( '', sanitize_text_field($comment)));
 		}
 	}
 
-	echo var_dump( $_POST );
+	// Die and give a message saying we succesfully updated, including a link to go back to the previous page, falling back to the homepage
+	$url = get_site_url();
+
+	if(isset($_SERVER["HTTP_REFERER"])) {
+		$url = $_SERVER["HTTP_REFERER"];
+	}
+
+	echo '<meta http-equiv="refresh" content="5; url=' . $url . '">';
+
+	die('<p>Succesfully updated the trails.  Click <a href="' . $url . '">here</a> if you are not automatically redirected after 5 seconds</p>');
 }
 add_action( 'admin_post_nopriv_lhgr_groomer_entry', 'add_groomer_entry_data' );
 add_action( 'admin_post_lhgr_groomer_entry', 'add_groomer_entry_data' );
