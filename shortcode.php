@@ -1,4 +1,59 @@
 <?php
+function lhgr_get_all_trails()
+{
+	$all_trail_ids = array();
+
+	// Get a list of all "Trails" entries
+	$query = new WP_Query(array(
+		'post_type' => 'lhgr_trails',
+		'post_status' => 'publish',
+		'posts_per_page' => -1
+	));
+
+	while ($query->have_posts()) {
+		$query->the_post();
+		$all_trail_ids[] = get_the_ID();
+	}
+	wp_reset_query();
+
+	return $all_trail_ids;
+}
+
+function lhgr_get_all_trail_info($all_categories = true)
+{
+	$trail_ids = lhgr_get_all_trails();
+
+	$trail_info = array();
+
+	foreach ( $trail_ids as $trail_id ) {
+		$categories = get_the_category($trail_id);
+		$groomer_entries = get_post_meta($trail_id, 'groomer_entry');
+		$gpx_url = get_post_meta($trail_id, 'gpx_track_url', true);
+		$title = get_the_title($trail_id);
+
+		// Use the last comment, regardless of if it is empty or not
+		$last_comment = end($groomer_entries)[1];
+
+		// Find the last entry that has a date
+		$last_date = end($groomer_entries)[0];
+		while ( empty($last_date) && !is_null($key = key($groomer_entries)) ) {
+			$last_date = prev($groomer_entries)[0];
+		}
+
+		if ( $all_categories) {
+			// Add the trails to all of the categories they belong to
+			foreach ( $categories as $category ) {
+				$trail_info[$category->name][] = array($trail_id, $title, $gpx_url, $last_date, $last_comment);
+			}
+		} else {
+			// Only add the trail to the first category it belongs to
+			$trail_info[$categories[0]->name][] = array($trail_id, $title, $gpx_url, $last_date, $last_comment);
+		}
+	}
+
+	return $trail_info;
+}
+
 function lhgr_shortcode_init()
 {
 	function lhgr_map_shortcode($atts = [], $content = null)
@@ -17,24 +72,17 @@ function initializeMap() {
 		attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 	}).addTo(mymap);
 EOD;
-		// Get a list of all "Trails" entries
-		$query = new WP_Query(array(
-			'post_type' => 'lhgr_trails',
-			'post_status' => 'publish',
-			'posts_per_page' => -1
-		));
 
-		while ($query->have_posts()) {
-			$query->the_post();
-			$post_id = get_the_ID();
+		$trails_categories = lhgr_get_all_trail_info(false);
 
-			$gps_track = get_post_meta($post_id, 'gpx_track_url', true);
-
-			if ($gps_track) {
-				$content .= 'omnivore.gpx("' . $gps_track . '").addTo(mymap);';
+		// Loop through all the categories and add all the trails
+		foreach ( $trails_categories as $trails_info) {
+			foreach ( $trails_info as $trail ) {
+				if ($trail[2]) {
+					$content .= 'omnivore.gpx("' . $trail[2] . '").addTo(mymap);';
+				}
 			}
 		}
-		wp_reset_query();
 
 		$content .= '}</script>';
 
@@ -68,42 +116,20 @@ EOD;
 	<th>Current Comment</th>
 </tr>
 EOD;
-		$trail_categories = array();
+		$trail_categories = lhgr_get_all_trail_info(false);
 
-		// Get all the trails and add them to the list
-		$query = new WP_Query(array(
-			'post_type' => 'lhgr_trails',
-			'post_status' => 'publish',
-			'posts_per_page' => -1
-		));
+		foreach( $trail_categories as $key => $trail_category ) {
+			$content .= '<tr><th colspan="4">' . $key . '</th></tr>';
 
-		while ($query->have_posts()) {
-			$query->the_post();
-			$post_id = get_the_ID();
-
-			$categories = get_the_category();
-
-			$groomed = get_post_meta($post_id, 'groomer_entry');
-
-			foreach ($categories as $category) {
-				$trail_categories[$category->name][] = array(get_the_title(), $post_id, $category->name, $groomed);
-			}
-		}
-		wp_reset_query();
-
-		foreach( $trail_categories as $trail_category) {
 			// Sort the array alphabetically
 			natcasesort($trail_category);
 
-			$content .= '<tr><th colspan="3">' . $trail_category[0][2] . '</th></tr>';
-
 			foreach( $trail_category as $trail ) {
-				$content .= '<tr><td>' . $trail[0] . '</td>';
-				// TODO - Make sure we don't have doubled ID values if something is part of multiple categories...
-				$content .= '<td><input type="checkbox" name="groomed[' . $trail[1] . ']" value="groomed" ></td>';
-				$content .= '<td><input type="text" name="comment[' . $trail[1] . ']"/></td>';
-				$content .= '<td>' . end($trail[3])[0] . '</td>';
-				$content .= '<td>' . end($trail[3])[1] . '</td></tr>';
+				$content .= '<tr><td>' . $trail[1] . '</td>';
+				$content .= '<td><input type="checkbox" name="groomed[' . $trail[0] . ']" value="groomed" ></td>';
+				$content .= '<td><input type="text" name="comment[' . $trail[0] . ']"/></td>';
+				$content .= '<td>' . $trail[3] . '</td>';
+				$content .= '<td>' . $trail[4] . '</td></tr>';
 			}
 		}
 
