@@ -99,10 +99,9 @@ EOD;
 			foreach( $trail_category as $trail ) {
 				$content .= '<tr><td>' . $trail[0] . '</td>';
 				// TODO - Make sure we don't have doubled ID values if something is part of multiple categories...
-				$content .= '<td><input type="checkbox" name="' . $trail[1] . 'groomed" value="groomed" ></td>';
-				$content .= '<td><input type="text" name="' . $trail[1] . 'comment" /></td>';
-				// TODO - Determine how $groomed array is formatted, and get the last one that actually has a date...
-				$content .= '<td>' . end($trail[3]) . '</td></tr>';
+				$content .= '<td><input type="checkbox" name="groomed[' . $trail[1] . ']" value="groomed" ></td>';
+				$content .= '<td><input type="text" name="comment[' . $trail[1] . ']"/></td>';
+				$content .= '<td>' . end($trail[3])[0] . '</td></tr>';
 			}
 		}
 
