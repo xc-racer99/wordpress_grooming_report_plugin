@@ -88,6 +88,15 @@ function lhgr_shortcode_init()
 </table>
 EOT;
 
+		// Get our options for the map setup
+		$lat = esc_js(get_option('map_lat'));
+		$long = esc_js(get_option('map_lng'));
+		$defaultZoom = esc_js(get_option('map_default_zoom'));
+		$tiles = esc_js(get_option('map_tiles'));
+		$maxZoom = esc_js(get_option('map_max_zoom'));
+		$attrib = esc_js(get_option('map_attribute'));
+
+		// Setup our map
 		$content .= <<<EOD
 <script type="text/javascript">
 function initializeMap() {
@@ -102,14 +111,14 @@ function initializeMap() {
 	};
 
 	var mymap = L.map('lhgr_map', {
-		center: [50.721661,-119.135506],
-		zoom: [14],
+		center: [$lat, $long],
+		zoom: [$defaultZoom],
 		layers: [recentGrooming, todaysGrooming]
 	});
 
-	var OpenStreetMap_Mapnik = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-		maxZoom: 19,
-		attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+	var OpenStreetMap_Mapnik = L.tileLayer('$tiles', {
+		maxZoom: $maxZoom,
+		attribution: '$attrib'
 	}).addTo(mymap);
 
 	var greenOverlay = L.geoJson(null, {

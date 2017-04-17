@@ -12,6 +12,9 @@ require_once( 'shortcode.php' );
 // Include our POST handler for the groomer's entry page
 require_once( 'groomer-report-handler.php' );
 
+// Include our settings page
+require_once( 'settings.php' );
+
 // register custom post type to work with
 function lhgr_create_post_type() {
 	// set up labels
