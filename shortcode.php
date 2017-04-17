@@ -61,16 +61,52 @@ function lhgr_shortcode_init()
 		// Enqueue our resources
 		wp_enqueue_script('lhgr_leaflet_helper');
 		wp_enqueue_style('leaflet-base-css');
-		$content = '<div id="lhgr_map" style="height: 400px;"></div>';
+		$content = '<div id="lhgr_map" style="height: 500px;"></div>';
 
 		$content .= <<<EOD
-<script>
+<script type="text/javascript">
 function initializeMap() {
-	var mymap = L.map('lhgr_map').setView([50.745711, -119.136533], 13);
+	/* Layer groups */
+	var todaysGrooming = new L.LayerGroup();
+	var recentGrooming = new L.LayerGroup();
+
+	/* Define nice names for the layers */
+	var overlays = {
+		"Today's": todaysGrooming,
+		"Recent": recentGrooming,
+	};
+
+	var mymap = L.map('lhgr_map', {
+		center: [50.721661,-119.135506],
+		zoom: [14],
+		layers: [recentGrooming, todaysGrooming]
+	});
+
 	var OpenStreetMap_Mapnik = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 		maxZoom: 19,
 		attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 	}).addTo(mymap);
+
+	var greenOverlay = L.geoJson(null, {
+		// http://leafletjs.com/reference.html#geojson-style
+		style: function(feature) {
+		return { color: 'green', weight: 3, opacity: 1 };
+		}
+	});
+
+	var yellowOverlay = L.geoJson(null, {
+		// http://leafletjs.com/reference.html#geojson-style
+		style: function(feature) {
+		return { color: 'yellow', weight: 3, opacity: 1 };
+		}
+	});
+
+	var redOverlay = L.geoJson(null, {
+		// http://leafletjs.com/reference.html#geojson-style
+		style: function(feature) {
+		return { color: 'red', weight: 3, opacity: 1 };
+		}
+	});
 EOD;
 
 		$trails_categories = lhgr_get_all_trail_info(false);
@@ -79,11 +115,47 @@ EOD;
 		foreach ( $trails_categories as $trails_info) {
 			foreach ( $trails_info as $trail ) {
 				if ($trail[2]) {
-					$content .= 'omnivore.gpx("' . $trail[2] . '").addTo(mymap);';
+					// We have a GPX track, check the date and add the popup
+					$popupData = '<h5>' . $trail[1] . '</h5>';
+
+					if (empty($trail[3])) {
+						// Never groomed
+						$popupData .= '<p>Never Groomed';
+					} else {
+						$popupData .= '<p>' . date( "M j\, Y", strtotime( $trail[3] ));
+					}
+
+					if ( !empty($trail[4]) ) {
+						$popupData .= '<br />' . $trail[4];
+					}
+
+					$popupData .= "</p>";
+
+					// Default to a red track
+					$overlay = 'redOverlay';
+
+					if ($trail[3] == current_time("Y-m-d") || $trail[3] == date("Y-m-d", strtotime("-1 day", current_time("timestamp")))) {
+						$overlay = 'greenOverlay';
+					} else if ($trail[3] == date("Y-m-d", strtotime("-2 days", current_time("timestamp"))) || $trail[3] == date("Y-m-d", strtotime("-3 days", current_time("timestamp")))) {
+						$overlay = 'yellowOverlay';
+					}
+						$content .= <<<EOT
+
+omnivore.gpx("$trail[2]", null, $overlay)
+.on('ready', function() {
+	this.eachLayer(function(layer) {
+		layer.bindPopup("$popupData");
+	});
+})
+.addTo(recentGrooming);
+
+EOT;
+					} else {
 				}
 			}
 		}
 
+		$content .= "L.control.layers(null, overlays).addTo(mymap);\n";
 		$content .= '}</script>';
 
 		return $content;
