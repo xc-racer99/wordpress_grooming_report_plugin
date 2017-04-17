@@ -63,6 +63,31 @@ function lhgr_shortcode_init()
 		wp_enqueue_style('leaflet-base-css');
 		$content = '<div id="lhgr_map" style="height: 500px;"></div>';
 
+		// Add the table containing the legend
+		$content .= <<<EOT
+<table>
+<tr>
+	<th colspan="2">Legend</th>
+</tr>
+<tr>
+	<td><img src="https://unpkg.com/leaflet@1.0.3/dist/images/marker-icon.png" /></td>
+	<td>Points from today's grooming</td>
+</tr>
+<tr>
+	<td style="background-color: green;"></td>
+	<td>Groomed today or yesterday</td>
+</tr>
+<tr>
+	<td style="background-color: yellow;"></td>
+	<td>Groomed two or three days ago</td>
+</tr>
+<tr>
+	<td style="background-color: red;"></td>
+	<td>Groomed four or more days ago</td>
+</tr>
+</table>
+EOT;
+
 		$content .= <<<EOD
 <script type="text/javascript">
 function initializeMap() {
@@ -154,6 +179,9 @@ EOT;
 				}
 			}
 		}
+
+		// Add the inReach KML feed
+		$content .= 'omnivore.kml("https://xc-racer2.duckdns.org/plugins/wp-content/plugins/test/track.kml").addTo(todaysGrooming);';
 
 		$content .= "L.control.layers(null, overlays).addTo(mymap);\n";
 		$content .= '}</script>';
