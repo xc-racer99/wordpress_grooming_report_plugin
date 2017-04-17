@@ -8,15 +8,12 @@ function add_groomer_entry_data() {
 
     // Sanitize the POST field
 	// Generate the correct date to use
-	$date;
-	if( $_POST[date] == "today" ) {
-		$date = date("Y-m-d");
-	} else if ( $_POST[date] == "yesterday" ) {
-		$date = date("Y-m-d", strtotime("-1 day", time()));
+	$date = current_time("Y-m-d");
+	if ( $_POST[date] == "yesterday" ) {
+		$date = date("Y-m-d", strtotime("-1 day", current_time("timestamp")));
 	} else if ($_POST[date] == "two_days_ago" ) {
-		$date = date("Y-m-d", strtotime("-2 days", time()));
+		$date = date("Y-m-d", strtotime("-2 days", current_time("timestamp")));
 	}
-
 
 	// Deal with each of the trails
 	foreach( $_POST['groomed'] as $entry ) {
