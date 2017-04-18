@@ -1,61 +1,80 @@
 <?php
 function lhgr_settings_page_html()
 {
-    // check user capabilities
-    if (!current_user_can('manage_options')) {
-        return;
-    }
-    ?>
-    <div class="wrap">
-        <h1><?= esc_html(get_admin_page_title()); ?></h1>
-        <form action="options.php" method="post">
-            <?php
-            // output security fields for the registered setting "lhgr_settings"
-            settings_fields('lhgr_settings');
-            // output setting sections and their fields
-            // (sections are registered for "lhgr_settings", each field is registered to a specific section)
-            do_settings_sections('lhgr_settings');
-            ?>
-            <label for="map_lat">Latitude</label>
-            <input type="text" name="map_lat" id="map_lat" value="<?php echo esc_attr(get_option('map_lat'));?>"/>
+	// check user capabilities
+	if (!current_user_can('manage_options')) {
+		return;
+	}
+	?>
+	<div class="wrap">
+		<h1><?= esc_html(get_admin_page_title()); ?></h1>
+		<form action="options.php" method="post">
+			<?php
+			// output security fields for the registered setting "lhgr_settings"
+			settings_fields('lhgr_settings');
+			// output setting sections and their fields
+			// (sections are registered for "lhgr_settings", each field is registered to a specific section)
+			do_settings_sections('lhgr_settings');
+			?>
+			<fieldset>
+			<legend>Map Settings</legend>
+			<table>
+			<tr>
+			<td><label for="map_lat">Latitude</label></td>
+			<td><input type="text" name="map_lat" id="map_lat" value="<?php echo esc_attr(get_option('map_lat'));?>"/></td>
+			</tr>
 
-            <label for="map_lng">Longitude</label>
-            <input type="text" name="map_lng" id="map_lng" value="<?php echo esc_attr(get_option('map_lng'));?>"/>
+			<tr>
+			<td><label for="map_lng">Longitude</label></td>
+			<td><input type="text" name="map_lng" id="map_lng" value="<?php echo esc_attr(get_option('map_lng'));?>"/></td>
+			</tr>
 
-            <label for="map_default_zoom">Default Zoom</label>
-            <input type="text" name="map_default_zoom" id="map_default_zoom" value="<?php echo esc_attr(get_option('map_default_zoom'));?>"/>
+			<tr>
+			<td><label for="map_default_zoom">Default Zoom</label></td>
+			<td><input type="text" name="map_default_zoom" id="map_default_zoom" value="<?php echo esc_attr(get_option('map_default_zoom'));?>"/></td>
+			</tr>
 
-            <label for="map_tiles">Map Tiles URL</label>
-            <input type="text" name="map_tiles" id="map_tiles" value="<?php echo esc_attr(get_option('map_tiles'));?>"/>
+			<tr>
+			<td><label for="map_tiles">Map Tiles URL</label></td>
+			<td><input type="text" name="map_tiles" id="map_tiles" value="<?php echo esc_attr(get_option('map_tiles'));?>"/></td>
+			</tr>
 
-            <label for="map_max_zoom">Max Zoom Level</label>
-            <input type="text" name="map_max_zoom" id="map_max_zoom" value="<?php echo esc_attr(get_option('map_max_zoom'));?>"/>
+			<tr>
+			<td><label for="map_max_zoom">Max Zoom Level</label></td>
+			<td><input type="text" name="map_max_zoom" id="map_max_zoom" value="<?php echo esc_attr(get_option('map_max_zoom'));?>"/></td>
+			</tr>
 
-            <label for="map_attribute">Map Attribution</label>
-            <input type="text" name="map_attribute" id="map_attribute" value="<?php echo esc_attr(get_option('map_attribute'));?>"/>
+			<tr>
+			<td><label for="map_attribute">Map Attribution</label></td>
+			<td><input type="text" name="map_attribute" id="map_attribute" value="<?php echo esc_attr(get_option('map_attribute'));?>"/></td>
+			</tr>
 
-            <label for="inreach_link">inReach KML Feed URL</label>
-            <input type="url" name="inreach_link" id="inreach_link" value="<?php echo esc_attr(get_option('inreach_link'));?>"/>
+			<tr>
+			<td><label for="inreach_link">inReach KML Feed URL</label></td>
+			<td><input type="url" name="inreach_link" id="inreach_link" value="<?php echo esc_attr(get_option('inreach_link'));?>"/></td>
+			</tr>
+			</table>
+			</fieldset>
 
-            <?php
-            // output save settings button
-            submit_button('Save Settings');
-            ?>
-        </form>
-    </div>
-    <?php
+			<?php
+			// output save settings button
+			submit_button('Save Settings');
+			?>
+		</form>
+	</div>
+	<?php
 }
 
 function lhgr_settings_page()
 {
-    add_submenu_page(
-        'options-general.php',
-        'Grooming Report Settings',
-        'Grooming Report',
-        'manage_options',
-        'lhgr_settings',
-        'lhgr_settings_page_html'
-    );
+	add_submenu_page(
+		'options-general.php',
+		'Grooming Report Settings',
+		'Grooming Report',
+		'manage_options',
+		'lhgr_settings',
+		'lhgr_settings_page_html'
+	);
 }
 add_action('admin_menu', 'lhgr_settings_page');
 

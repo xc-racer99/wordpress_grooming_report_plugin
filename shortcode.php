@@ -150,17 +150,17 @@ EOD;
 			foreach ( $trails_info as $trail ) {
 				if ($trail[2]) {
 					// We have a GPX track, check the date and add the popup
-					$popupData = '<h5>' . $trail[1] . '</h5>';
+					$popupData = '<h5>' . esc_html($trail[1]) . '</h5>';
 
 					if (empty($trail[3])) {
 						// Never groomed
 						$popupData .= '<p>Never Groomed';
 					} else {
-						$popupData .= '<p>' . date( "M j\, Y", strtotime( $trail[3] ));
+						$popupData .= '<p>' . esc_html(date( "M j\, Y", strtotime( $trail[3] )));
 					}
 
 					if ( !empty($trail[4]) ) {
-						$popupData .= '<br />' . $trail[4];
+						$popupData .= '<br />' . esc_html($trail[4]);
 					}
 
 					$popupData .= "</p>";
@@ -173,9 +173,14 @@ EOD;
 					} else if ($trail[3] == date("Y-m-d", strtotime("-2 days", current_time("timestamp"))) || $trail[3] == date("Y-m-d", strtotime("-3 days", current_time("timestamp")))) {
 						$overlay = 'yellowOverlay';
 					}
-						$content .= <<<EOT
 
-omnivore.gpx("$trail[2]", null, $overlay)
+                    $overlay = esc_js($overlay);
+
+                    $trail_name = esc_js($trail[2]);
+                    
+					$content .= <<<EOT
+
+omnivore.gpx("$trail_name", null, $overlay)
 .on('ready', function() {
 	this.eachLayer(function(layer) {
 		layer.bindPopup("$popupData");
@@ -184,7 +189,6 @@ omnivore.gpx("$trail[2]", null, $overlay)
 .addTo(recentGrooming);
 
 EOT;
-					} else {
 				}
 			}
 		}
@@ -214,7 +218,7 @@ EOT;
 		$trail_categories = lhgr_get_all_trail_info();
 
 		foreach( $trail_categories as $key => $trail_category ) {
-			$content .= '<h4>' . $key . '</h4>';
+			$content .= '<h4>' . esc_html($key) . '</h4>';
 
 			$content .= $table_header;
 
@@ -222,9 +226,9 @@ EOT;
 			natcasesort($trail_category);
 
 			foreach( $trail_category as $trail ) {
-				$content .= '<tr><td>' . $trail[1] . '</td>';
-				$content .= '<td>' . $trail[3] . '</td>';
-				$content .= '<td>' . $trail[4] . '</td></tr>';
+				$content .= '<tr><td>' . esc_html($trail[1]) . '</td>';
+				$content .= '<td>' . esc_html($trail[3]) . '</td>';
+				$content .= '<td>' . esc_html($trail[4]) . '</td></tr>';
 			}
 
 			$content .= '</table>';
@@ -263,17 +267,17 @@ EOD;
 		$trail_categories = lhgr_get_all_trail_info(false);
 
 		foreach( $trail_categories as $key => $trail_category ) {
-			$content .= '<tr><th colspan="4">' . $key . '</th></tr>';
+			$content .= '<tr><th colspan="4">' . esc_html($key) . '</th></tr>';
 
 			// Sort the array alphabetically
 			natcasesort($trail_category);
 
 			foreach( $trail_category as $trail ) {
-				$content .= '<tr><td>' . $trail[1] . '</td>';
-				$content .= '<td><input type="checkbox" name="groomed[' . $trail[0] . ']" value="groomed" ></td>';
-				$content .= '<td><input type="text" name="comment[' . $trail[0] . ']"/></td>';
-				$content .= '<td>' . $trail[3] . '</td>';
-				$content .= '<td>' . $trail[4] . '</td></tr>';
+				$content .= '<tr><td>' . esc_html($trail[1]) . '</td>';
+				$content .= '<td><input type="checkbox" name="groomed[' . esc_html($trail[0]) . ']" value="groomed" ></td>';
+				$content .= '<td><input type="text" name="comment[' . esc_html($trail[0]) . ']"/></td>';
+				$content .= '<td>' . esc_html($trail[3]) . '</td>';
+				$content .= '<td>' . esc_html($trail[4]) . '</td></tr>';
 			}
 		}
 
@@ -285,18 +289,3 @@ EOD;
 	add_shortcode('lhgr_groomer_entry', 'lhgr_groomers_entry');
 }
 add_action('init', 'lhgr_shortcode_init');
-
-// Register leaflet resources
-function lhgr_register_resources()
-{
-	// The main leaflet resources
-	wp_register_script('leaflet-base-js', '//unpkg.com/leaflet@1.0.3/dist/leaflet.js', null, '1.0.3');
-	wp_register_style('leaflet-base-css', '//unpkg.com/leaflet@1.0.3/dist/leaflet.css', null, '1.0.3');
-
-	// Leaflet omnivore
-	wp_register_script('leaflet-omnivore', '//api.tiles.mapbox.com/mapbox.js/plugins/leaflet-omnivore/v0.3.1/leaflet-omnivore.min.js', array('leaflet-base-js'), '0.3.1');
-
-	// Helper JS file to delay initializing the map until its ready
-	wp_register_script('lhgr_leaflet_helper', plugins_url('initializeMap.js', __FILE__), array('leaflet-base-js', 'leaflet-omnivore'));
-}
-add_action( 'wp_enqueue_scripts', 'lhgr_register_resources');
