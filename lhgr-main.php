@@ -19,7 +19,7 @@ require_once( 'settings.php' );
 function lhgr_create_post_type() {
 	// set up labels
 	$labels = array(
- 		'name' => 'Trails',
+		'name' => 'Trails',
 		'singular_name' => 'Trail',
 		'add_new' => 'Add New Trail',
 		'add_new_item' => 'Add New Trail',
@@ -62,10 +62,10 @@ function lhgr_add_meta_boxes()
 	$screens = ['lhgr_trails'];
 	foreach ($screens as $screen) {
 		add_meta_box(
-			'wporg_box_id',		   // Unique ID
-			'GPS Track',  // Box title
+			'gps_track_box',    // Unique ID
+			'GPS Track',       // Box title
 			'gps_track_html',  // Content callback, must be of type callable
-			$screen				   // Post type
+			$screen            // Post type
 		);
 	}
 }
@@ -74,6 +74,7 @@ add_action('add_meta_boxes', 'lhgr_add_meta_boxes');
 function gps_track_html($post)
 {
 // TODO: Create a mini-leaflet map if we already have a file uploaded...
+    wp_nonce_field( basename( __FILE__ ), 'lhgr_gps_track_nonce' );
 	?>
 	<p>Current GPX URL: <?php echo get_post_meta($post->ID, 'gpx_track_url', true); ?></p>
 	<p>Current GPX File: <?php echo get_post_meta($post->ID, 'gpx_track_file', true); ?></p>
@@ -84,8 +85,16 @@ function gps_track_html($post)
 
 function lhgr_save_postdata($post_id, $post)
 {
+    /* Verify the nonce before proceeding. */
+    if ( !isset( $_POST['lhgr_gps_track_nonce'] ) || !wp_verify_nonce( $_POST['lhgr_gps_track_nonce'], basename( __FILE__ ) ) )
+        return $post_id;
+    
 	// Get the post type. Since this function will run for ALL post saves (no matter what post type), we need to know this.
 	$post_type = $post->post_type;
+
+    /* Check if the current user has permission to edit the post. */
+    if ( !current_user_can( $post_type->cap->edit_post, $post_id ) )
+        return $post_id;
 
 	// Logic to handle specific post types
 	switch($post_type) {
@@ -156,7 +165,6 @@ function lhgr_add_edit_form_multipart_encoding() {
 
 }
 add_action('post_edit_form_tag', 'lhgr_add_edit_form_multipart_encoding');
-
 
 // Register leaflet resources
 function lhgr_register_resources()
