@@ -82,10 +82,34 @@ add_action('add_meta_boxes', 'lhgr_add_meta_boxes');
 
 function gps_track_html($post)
 {
-// TODO: Create a mini-leaflet map if we already have a file uploaded...
 	wp_nonce_field( basename( __FILE__ ), 'lhgr_gps_track_nonce' );
+	$gpx_url = get_post_meta($post->ID, 'gpx_track_url', true);
+
+	if ($gpx_url) {
+		wp_enqueue_style('leaflet-base-css');
+		wp_enqueue_script('lhgr_leaflet_helper');
 	?>
-	<p>Current GPX URL: <?php echo get_post_meta($post->ID, 'gpx_track_url', true); ?></p>
+<div id="lhgr_map" style="width: 200px; height: 200px;"></div>
+<script>
+function initializeMap() {
+	var mymap = L.map('lhgr_map');
+
+	var track = omnivore.gpx('<?php echo esc_js($gpx_url);?>').addTo(mymap);
+	track.on('ready', function() {
+		mymap.fitBounds(track.getBounds());
+	});
+
+	var tiles = L.tileLayer('<?php echo esc_js(get_option('map_tiles')); ?>', {
+		maxZoom: <?php echo esc_js(get_option('map_max_zoom')); ?>,
+		attribution: '<?php echo esc_js(get_option('map_attribute')); ?>'
+	}).addTo(mymap);
+}
+</script>
+	<?php
+	} else {
+		echo '<p>No current GPX track uploaded</p>';
+	}
+	?>
 
 	<label for="gpx_upload">Upload GPX Track</label>
 	<input name="gpx_upload" id="gpx_upload" type="file" />
@@ -205,3 +229,4 @@ function lhgr_register_resources()
 	wp_register_script('lhgr_leaflet_helper', plugins_url('initializeMap.js', __FILE__), array('leaflet-base-js', 'leaflet-omnivore'));
 }
 add_action( 'wp_enqueue_scripts', 'lhgr_register_resources');
+add_action( 'admin_enqueue_scripts', 'lhgr_register_resources');
