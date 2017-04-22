@@ -17,40 +17,39 @@ function lhgr_settings_page_html()
 			do_settings_sections('lhgr_settings');
 			?>
 			<fieldset>
-			<legend>Map Settings</legend>
-			<table>
+			<table class="form-table">
 			<tr>
-			<td><label for="map_lat">Latitude</label></td>
+			<th><label for="map_lat">Latitude</label></td>
 			<td><input type="text" name="map_lat" id="map_lat" value="<?php echo esc_attr(get_option('map_lat'));?>"/></td>
 			</tr>
 
 			<tr>
-			<td><label for="map_lng">Longitude</label></td>
+			<th><label for="map_lng">Longitude</label></td>
 			<td><input type="text" name="map_lng" id="map_lng" value="<?php echo esc_attr(get_option('map_lng'));?>"/></td>
 			</tr>
 
 			<tr>
-			<td><label for="map_default_zoom">Default Zoom</label></td>
+			<th><label for="map_default_zoom">Default Zoom</label></td>
 			<td><input type="text" name="map_default_zoom" id="map_default_zoom" value="<?php echo esc_attr(get_option('map_default_zoom'));?>"/></td>
 			</tr>
 
 			<tr>
-			<td><label for="map_tiles">Map Tiles URL</label></td>
+			<th><label for="map_tiles">Map Tiles URL</label></td>
 			<td><input type="text" name="map_tiles" id="map_tiles" value="<?php echo esc_attr(get_option('map_tiles'));?>"/></td>
 			</tr>
 
 			<tr>
-			<td><label for="map_max_zoom">Max Zoom Level</label></td>
+			<th><label for="map_max_zoom">Max Zoom Level</label></td>
 			<td><input type="text" name="map_max_zoom" id="map_max_zoom" value="<?php echo esc_attr(get_option('map_max_zoom'));?>"/></td>
 			</tr>
 
 			<tr>
-			<td><label for="map_attribute">Map Attribution</label></td>
+			<th><label for="map_attribute">Map Attribution</label></td>
 			<td><input type="text" name="map_attribute" id="map_attribute" value="<?php echo esc_attr(get_option('map_attribute'));?>"/></td>
 			</tr>
 
 			<tr>
-			<td><label for="inreach_link">inReach KML Feed URL</label></td>
+			<th><label for="inreach_link">inReach KML Feed URL</label></td>
 			<td><input type="url" name="inreach_link" id="inreach_link" value="<?php echo esc_attr(get_option('inreach_link'));?>"/></td>
 			</tr>
 			</table>
