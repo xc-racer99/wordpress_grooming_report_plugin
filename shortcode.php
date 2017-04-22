@@ -194,7 +194,23 @@ EOT;
 		}
 
 		// Add the inReach KML feed
-		$content .= 'omnivore.kml("https://xc-racer2.duckdns.org/plugins/wp-content/plugins/test/track.kml").addTo(todaysGrooming);';
+		$content .= <<<EOT
+var pointsLayer = L.geoJson(null, {
+	filter: function(featureData, layer) {
+		// Only keep the point features, skip everything else
+		if (featureData.geometry.type == 'Point')
+			return true;
+		else
+			return false;
+	},
+	onEachFeature: function (featureData, layer) {
+		// Add a popup containing the time the groomer was there
+		layer.bindPopup('<p><strong>Time:</strong> ' +  featureData.properties.Time + '</p>');
+	}
+});
+
+var inReach = omnivore.kml("https://xc-racer2.duckdns.org/plugins/wp-content/plugins/test/track.kml", null, pointsLayer).addTo(todaysGrooming);
+EOT;
 
 		$content .= "L.control.layers(null, overlays).addTo(mymap);\n";
 		$content .= '}</script>';
