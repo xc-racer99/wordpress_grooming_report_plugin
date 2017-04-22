@@ -86,7 +86,7 @@ function gps_track_html($post)
 	wp_nonce_field( basename( __FILE__ ), 'lhgr_gps_track_nonce' );
 	?>
 	<p>Current GPX URL: <?php echo get_post_meta($post->ID, 'gpx_track_url', true); ?></p>
-	<p>Current GPX File: <?php echo get_post_meta($post->ID, 'gpx_track_file', true); ?></p>
+
 	<label for="gpx_upload">Upload GPX Track</label>
 	<input name="gpx_upload" id="gpx_upload" type="file" />
 	<?php
@@ -94,6 +94,10 @@ function gps_track_html($post)
 
 function groomer_entry_html($post) {
 	$groomer_entries = get_post_meta($post->ID, 'groomer_entry');
+
+	if (count($groomer_entries) == 0) {
+		echo '<p>No entries for this trail</p>';
+	} else {
 	?>
 
 <table>
@@ -106,9 +110,9 @@ function groomer_entry_html($post) {
 </tr>
 
 <?php
-	/* Loop through each of the entries, creating a list */
-	foreach ($groomer_entries as $key => $groomer_entry) {
-	?>
+		/* Loop through each of the entries, creating a list */
+		foreach ($groomer_entries as $key => $groomer_entry) {
+?>
 <tr>
 	<td><input type="radio" name="update_status[<?php echo esc_attr($key);?>]" value="ignore" checked="checked" /></td>
 	<td><input type="radio" name="update_status[<?php echo esc_attr($key);?>]" value="remove" /></td>
@@ -117,8 +121,9 @@ function groomer_entry_html($post) {
 	<td><input type="text" name="new_comment[<?php echo esc_attr($key);?>]" value="<?php echo esc_attr($groomer_entry[1]);?>" /></td>
 </tr>
 <?php
+		}
+		echo '</table>';
 	}
-	echo '</table>';
 }
 
 function lhgr_save_postdata($post_id, $post)
