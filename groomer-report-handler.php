@@ -1,4 +1,14 @@
 <?php
+function check_date($date, $post_id) {
+	$entries = get_post_meta($post_id, 'groomer_entry');
+
+	foreach ($entries as $entry) {
+		if ( $date == $entry[0])
+			return $entry;
+	}
+	return false;
+}
+
 function add_groomer_entry_data() {
 	/**
 	 * At this point, $_GET/$_POST variable are available
@@ -18,7 +28,13 @@ function add_groomer_entry_data() {
 	// Deal with each of the trails
 	foreach( $_POST['groomed'] as $trail_id => $entry ) {
 		if ($entry == 'groomed') {
-			add_post_meta($trail_id, 'groomer_entry', array($date, sanitize_text_field($_POST['comment'][$trail_id])));
+			$prev_entry = check_date($date, $trail_id);
+			if ($prev_entry) {
+				/* There's already an entry for this date, update that entry instead of creating a new one */
+				update_post_meta($trail_id, 'groomer_entry', array($date, sanitize_text_field($_POST['comment'][$trail_id])), $prev_entry);
+			} else {
+				add_post_meta($trail_id, 'groomer_entry', array($date, sanitize_text_field($_POST['comment'][$trail_id])));
+			}
 
 			// Remove the comment field so we don't add another entry
 			unset($_POST['comment'][$trail_id]);
