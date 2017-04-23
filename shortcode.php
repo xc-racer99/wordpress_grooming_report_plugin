@@ -193,8 +193,11 @@ EOT;
 			}
 		}
 
-		// Add the inReach KML feed
-		$content .= <<<EOT
+		// Add the inReach KML feed, if it exists
+		if (file_exists(plugin_dir_path( __FILE__ ) . 'inreachFeed.kml')) {
+			$feed = plugin_dir_url( __FILE__ ) . 'inreachFeed.kml';
+
+			$content .= <<<EOT
 var pointsLayer = L.geoJson(null, {
 	filter: function(featureData, layer) {
 		// Only keep the point features, skip everything else
@@ -209,8 +212,9 @@ var pointsLayer = L.geoJson(null, {
 	}
 });
 
-var inReach = omnivore.kml("https://xc-racer2.duckdns.org/plugins/wp-content/plugins/test/track.kml", null, pointsLayer).addTo(todaysGrooming);
+var inReach = omnivore.kml('$feed', null, pointsLayer).addTo(todaysGrooming);
 EOT;
+		}
 
 		$content .= "L.control.layers(null, overlays).addTo(mymap);\n";
 		$content .= '}</script>';

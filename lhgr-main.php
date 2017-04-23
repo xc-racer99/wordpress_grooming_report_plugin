@@ -15,6 +15,9 @@ require_once( 'groomer-report-handler.php' );
 /* Include our settings page */
 require_once( 'settings.php' );
 
+/* Include the file that optionally downloads the inReach KML feed */
+require_once( 'inreach-cron.php' );
+
 /* Register custom post type to work with */
 function lhgr_create_post_type() {
 	/* Set up labels */
