@@ -91,18 +91,25 @@ function gps_track_html($post)
     if ($gpx_url) {
 	wp_enqueue_style('leaflet-base-css');
 	wp_enqueue_script('lhgr_leaflet_helper');
+
+	$file_ext = substr(strrchr($gpx_url, "."), 1);
+	
+	if ($file_ext == 'gpx')
+	    $cmd = 'omnivore.gpx';
+	else if ($file_ext == 'kml')
+	$cmd = 'omnivore.kml';
 ?>
     <div id="lhgr_map" style="width: 200px; height: 200px;"></div>
     <script>
      function initializeMap() {
 	 var mymap = L.map('lhgr_map');
 
-	 var track = omnivore.gpx('<?php echo esc_js($gpx_url);?>').addTo(mymap);
+	 var track = <?php echo esc_js($cmd) . "('" . esc_js($gpx_url);?>').addTo(mymap);
 	 track.on('ready', function() {
 	     mymap.fitBounds(track.getBounds());
 	 });
 
-	 var tiles = L.tileLayer('<?php echo esc_js(get_option('map_tiles')); ?>', {
+	 var tiles = L.tileLayer('<?php echo  $file_ext . esc_js(get_option('map_tiles')); ?>', {
 	     maxZoom: <?php echo esc_js(get_option('map_max_zoom')); ?>,
 	     attribution: '<?php echo esc_js(get_option('map_attribute')); ?>'
 	 }).addTo(mymap);
@@ -110,11 +117,11 @@ function gps_track_html($post)
     </script>
 <?php
 } else {
-    echo '<p>No current GPX track uploaded</p>';
+    echo '<p>No current GPS track uploaded</p>';
 }
 ?>
 
-<label for="gpx_upload">Upload GPX Track</label>
+<label for="gpx_upload">Upload GPS Track</label>
 <input name="gpx_upload" id="gpx_upload" type="file" />
 	<?php
 	}
@@ -164,7 +171,7 @@ function gps_track_html($post)
 			/* If the upload field has a file in it */
 			if(isset($_FILES['gpx_upload']) && ($_FILES['gpx_upload']['size'] > 0)) {
 			    /* Options array for the wp_handle_upload function. */
-			    $upload_overrides = array( 'action' => 'editpost', 'mimes' => array('gpx' => 'application/xml') );
+			    $upload_overrides = array( 'action' => 'editpost', 'mimes' => array('gpx' => 'application/xml', 'kml' => 'application/xml') );
 
 			    /* Store the current uploaded file name so we can delete it */
 			    $old_track = get_post_meta($post_id, 'gpx_track_file', true);

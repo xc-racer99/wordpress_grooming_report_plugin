@@ -152,6 +152,13 @@ EOD;
 		    // We have a GPX track, check the date and add the popup
 		    $popupData = '<h5>' . esc_html($trail[1]) . '</h5>';
 
+		    $file_ext = substr(strrchr($trail[2], "."), 1);
+
+		    if ($file_ext == 'gpx')
+			$cmd = 'omnivore.gpx';
+		    else if ($file_ext == 'kml')
+		    $cmd = 'omnivore.kml';
+		    
 		    if (empty($trail[3])) {
 			// Never groomed
 			$popupData .= '<p>Never Groomed';
@@ -180,7 +187,7 @@ EOD;
                     
 		    $content .= <<<EOT
 
-omnivore.gpx("$trail_name", null, $overlay)
+$cmd("$trail_name", null, $overlay)
 .on('ready', function() {
 	this.eachLayer(function(layer) {
 		layer.bindPopup("$popupData");
