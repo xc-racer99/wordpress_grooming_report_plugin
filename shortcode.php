@@ -122,27 +122,6 @@ function initializeMap() {
 		maxZoom: $maxZoom,
 		attribution: '$attrib'
 	}).addTo(mymap);
-
-	var greenOverlay = L.geoJson(null, {
-		// http://leafletjs.com/reference.html#geojson-style
-		style: function(feature) {
-		return { color: 'green', weight: 3, opacity: 1 };
-		}
-	});
-
-	var yellowOverlay = L.geoJson(null, {
-		// http://leafletjs.com/reference.html#geojson-style
-		style: function(feature) {
-		return { color: 'yellow', weight: 3, opacity: 1 };
-		}
-	});
-
-	var redOverlay = L.geoJson(null, {
-		// http://leafletjs.com/reference.html#geojson-style
-		style: function(feature) {
-		return { color: 'red', weight: 3, opacity: 1 };
-		}
-	});
 EOD;
 
 	$trails_categories = lhgr_get_all_trail_info(false);
@@ -154,13 +133,15 @@ EOD;
 		    // We have a GPX track, check the date and add the popup
 		    $popupData = '<h5>' . esc_html($trail[1]) . '</h5>';
 
+		    $var_name = esc_js("_" . $trail[0] . "Var");
+
 		    $file_ext = substr(strrchr($trail[2], "."), 1);
 
 		    if ($file_ext == 'gpx')
 			$cmd = 'omnivore.gpx';
 		    else if ($file_ext == 'kml')
 		    $cmd = 'omnivore.kml';
-		    
+
 		    if (empty($trail[3])) {
 			// Never groomed
 			$popupData .= '<p>Never Groomed';
@@ -174,26 +155,44 @@ EOD;
 
 		    $popupData .= "</p>";
 
-		    // Default to a red track
-		    $overlay = 'redOverlay';
+		    $overlay_cmd = "";
 
 		    if ($trail[3] == current_time("Y-m-d") || $trail[3] == date("Y-m-d", strtotime("-1 day", current_time("timestamp")))) {
-			$overlay = 'greenOverlay';
+			$overlay_cmd = <<<EOT
+var $var_name = L.geoJson(null, {
+    style: function(feature) {
+	return { color: 'green', weight: 3, opacity: 1 };
+    }
+});
+EOT;
 		    } else if ($trail[3] == date("Y-m-d", strtotime("-2 days", current_time("timestamp"))) || $trail[3] == date("Y-m-d", strtotime("-3 days", current_time("timestamp")))) {
-			$overlay = 'yellowOverlay';
+			// Yellow overlay
+			$overlay_cmd = <<<EOT
+var $var_name = L.geoJson(null, {
+    style: function(feature) {
+	return { color: 'yellow', weight: 3, opacity: 1 };
+    }
+});
+EOT;
+		    } else {
+			// Red overlay
+			$overlay_cmd = <<<EOT
+var $var_name = L.geoJson(null, {
+    style: function(feature) {
+	return { color: 'red', weight: 3, opacity: 1 };
+    }
+});
+EOT;
 		    }
-
-                    $overlay = esc_js($overlay);
-
                     $trail_name = esc_js($trail[2]);
-                    
+
 		    $content .= <<<EOT
 
-$cmd("$trail_name", null, $overlay)
+$overlay_cmd
+
+$cmd("$trail_name", null, $var_name)
 .on('ready', function() {
-	this.eachLayer(function(layer) {
-		layer.bindPopup("$popupData");
-	});
+	this.bindPopup("$popupData");
 })
 .addTo(recentGrooming);
 
