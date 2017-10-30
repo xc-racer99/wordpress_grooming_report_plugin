@@ -18,6 +18,29 @@ require_once( 'settings.php' );
 /* Include the file that optionally downloads the inReach KML feed */
 require_once( 'inreach-cron.php' );
 
+/* Sets some sane defaults */
+function set_default_options() {
+    if(!get_option('map_lat'))
+	update_option('map_lat', "0");
+    if(!get_option('map_lng'))
+	update_option('map_lng', "0");
+    if(!get_option('map_default_zoom'))
+	update_option('map_default_zoom', "2");
+    if(!get_option('map_tiles'))
+	update_option('map_tiles', 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+    if(!get_option('map_max_zoom'))
+	update_option('map_max_zoom', "19");
+    if(!get_option('map_attribute'))
+	update_option('map_attribute', '&copy; OpenStreetMap');
+}
+
+/* Activation function */
+function lhgr_plugin_activation() {
+    set_default_options();
+
+    schedule_inreach_fetch();
+}
+
 /* Register custom post type to work with */
 function lhgr_create_post_type() {
     /* Set up labels */
@@ -240,9 +263,9 @@ function gps_track_html($post)
 		}
 		add_action( 'wp_enqueue_scripts', 'lhgr_register_resources');
 		add_action( 'admin_enqueue_scripts', 'lhgr_register_resources');
-
+		
 		// Activation hooks
-		register_activation_hook( __FILE__, 'schedule_inreach_fetch' );
+		register_activation_hook( __FILE__, 'lhgr_plugin_activation' );
 
 		// Deactivation hooks
 		register_deactivation_hook( __FILE__, 'inreach_deactivate' );
