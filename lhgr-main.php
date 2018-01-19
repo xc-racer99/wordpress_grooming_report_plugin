@@ -132,7 +132,7 @@ function gps_track_html($post)
 	     mymap.fitBounds(track.getBounds());
 	 });
 
-	 var tiles = L.tileLayer('<?php echo  $file_ext . esc_js(get_option('map_tiles')); ?>', {
+	 var tiles = L.tileLayer('<?php echo  esc_js(get_option('map_tiles')); ?>', {
 	     maxZoom: <?php echo esc_js(get_option('map_max_zoom')); ?>,
 	     attribution: '<?php echo esc_js(get_option('map_attribute')); ?>'
 	 }).addTo(mymap);
