@@ -9,7 +9,7 @@ function lhgr_get_all_trails()
 	'post_status' => 'publish',
 	'posts_per_page' => -1,
 	'orderby' => title,
-	'order' => 'DESC'
+	'order' => 'ASC'
     ));
 
     while ($query->have_posts()) {
@@ -249,9 +249,6 @@ EOT;
 	    $content .= '<h4>' . esc_html($key) . '</h4>';
 
 	    $content .= $table_header;
-
-	    // Sort the array alphabetically
-	    natcasesort($trail_category);
 
 	    foreach( $trail_category as $trail ) {
 		$content .= '<tr><td>' . esc_html($trail[1]) . '</td>';
