@@ -294,9 +294,6 @@ EOD;
 	foreach( $trail_categories as $key => $trail_category ) {
 	    $content .= '<tr><th colspan="4">' . esc_html($key) . '</th></tr>';
 
-	    // Sort the array alphabetically
-	    natcasesort($trail_category);
-
 	    foreach( $trail_category as $trail ) {
 		$content .= '<tr><td>' . esc_html($trail[1]) . '</td>';
 		$content .= '<td><input type="checkbox" name="groomed[' . esc_html($trail[0]) . ']" value="groomed" ></td>';
