@@ -1,65 +1,65 @@
 <?php
 function lhgr_get_all_trails()
 {
-    $all_trail_ids = array();
+	$all_trail_ids = array();
 
-    // Get a list of all "Trails" entries
-    $query = new WP_Query(array(
-	'post_type' => 'lhgr_trails',
-	'post_status' => 'publish',
-	'posts_per_page' => -1,
-	'orderby' => title,
-	'order' => 'ASC'
-    ));
+	// Get a list of all "Trails" entries
+	$query = new WP_Query(array(
+		'post_type' => 'lhgr_trails',
+		'post_status' => 'publish',
+		'posts_per_page' => -1,
+		'orderby' => title,
+		'order' => 'ASC'
+	));
 
-    while ($query->have_posts()) {
-	$query->the_post();
-	$all_trail_ids[] = get_the_ID();
-    }
-    wp_reset_query();
+	while ($query->have_posts()) {
+		$query->the_post();
+		$all_trail_ids[] = get_the_ID();
+	}
+	wp_reset_query();
 
-    return $all_trail_ids;
+	return $all_trail_ids;
 }
 
 function lhgr_get_all_trail_info($all_categories = true)
 {
-    $trail_ids = lhgr_get_all_trails();
+	$trail_ids = lhgr_get_all_trails();
 
-    $trail_info = array();
+	$trail_info = array();
 
-    foreach ( $trail_ids as $trail_id ) {
-	$categories = get_the_category($trail_id);
-	$groomer_entries = get_post_meta($trail_id, 'groomer_entry');
-	$gpx_url = get_post_meta($trail_id, 'gpx_track_url', true);
-	$title = get_the_title($trail_id);
+	foreach ( $trail_ids as $trail_id ) {
+		$categories = get_the_category($trail_id);
+		$groomer_entries = get_post_meta($trail_id, 'groomer_entry');
+		$gpx_url = get_post_meta($trail_id, 'gpx_track_url', true);
+		$title = get_the_title($trail_id);
 
-	// Use the last comment, regardless of if it is empty or not
-	$last_comment = end($groomer_entries)[1];
+		// Use the last comment, regardless of if it is empty or not
+		$last_comment = end($groomer_entries)[1];
 
-	// Find the last entry that has a date
-	$last_date = end($groomer_entries)[0];
-	while ( empty($last_date) && !is_null($key = key($groomer_entries)) ) {
-	    $last_date = prev($groomer_entries)[0];
+		// Find the last entry that has a date
+		$last_date = end($groomer_entries)[0];
+		while ( empty($last_date) && !is_null($key = key($groomer_entries)) ) {
+			$last_date = prev($groomer_entries)[0];
+		}
+
+		if ( $all_categories) {
+			// Add the trails to all of the categories they belong to
+			foreach ( $categories as $category ) {
+				$trail_info[$category->name][] = array($trail_id, $title, $gpx_url, $last_date, $last_comment);
+			}
+		} else {
+			// Only add the trail to the first category it belongs to
+			$trail_info[$categories[0]->name][] = array($trail_id, $title, $gpx_url, $last_date, $last_comment);
+		}
 	}
 
-	if ( $all_categories) {
-	    // Add the trails to all of the categories they belong to
-	    foreach ( $categories as $category ) {
-		$trail_info[$category->name][] = array($trail_id, $title, $gpx_url, $last_date, $last_comment);
-	    }
-	} else {
-	    // Only add the trail to the first category it belongs to
-	    $trail_info[$categories[0]->name][] = array($trail_id, $title, $gpx_url, $last_date, $last_comment);
-	}
-    }
-
-    return $trail_info;
+	return $trail_info;
 }
 
 function lhgr_shortcode_init()
 {
-    function lhgr_map_shortcode($atts = [], $content = null)
-    {
+	function lhgr_map_shortcode($atts = [], $content = null)
+	{
 	// Enqueue our resources
 	wp_enqueue_script('lhgr_leaflet_helper');
 	wp_enqueue_style('leaflet-base-css');
@@ -128,65 +128,61 @@ EOD;
 
 	// Loop through all the categories and add all the trails
 	foreach ( $trails_categories as $trails_info) {
-	    foreach ( $trails_info as $trail ) {
-		if ($trail[2]) {
-		    // We have a GPX track, check the date and add the popup
-		    $popupData = '<h5>' . esc_html($trail[1]) . '</h5>';
+		foreach ( $trails_info as $trail ) {
+			if (!$trail[2])
+				continue;
 
-		    $var_name = esc_js("_" . $trail[0] . "Var");
+			// We have a GPX track, check the date and add the popup
+			$popupData = '<h5>' . esc_html($trail[1]) . '</h5>';
 
-		    $file_ext = substr(strrchr($trail[2], "."), 1);
+			$var_name = esc_js("_" . $trail[0] . "Var");
 
-		    if ($file_ext == 'gpx')
-			$cmd = 'omnivore.gpx';
-		    else if ($file_ext == 'kml')
-		    $cmd = 'omnivore.kml';
+			$file_ext = substr(strrchr($trail[2], "."), 1);
 
-		    if (empty($trail[3])) {
-			// Never groomed
-			$popupData .= '<p>Never Groomed';
-		    } else {
-			$popupData .= '<p>' . esc_html(date( "M j\, Y", strtotime( $trail[3] )));
-		    }
+			if ($file_ext == 'gpx')
+				$cmd = 'omnivore.gpx';
+			else if ($file_ext == 'kml')
+				$cmd = 'omnivore.kml';
 
-		    if ( !empty($trail[4]) ) {
-			$popupData .= '<br />' . esc_html($trail[4]);
-		    }
+			if (empty($trail[3])) {
+				// Never groomed
+				$popupData .= '<p>Never Groomed';
+			} else {
+				$popupData .= '<p>' . esc_html(date( "M j\, Y", strtotime( $trail[3] )));
+			}
 
-		    $popupData .= "</p>";
+			if ( !empty($trail[4]) ) {
+				$popupData .= '<br />' . esc_html($trail[4]);
+			}
 
-		    $overlay_cmd = "";
+			$popupData .= "</p>";
 
-		    if ($trail[3] == current_time("Y-m-d") || $trail[3] == date("Y-m-d", strtotime("-1 day", current_time("timestamp")))) {
+			$current_date = date_create();
+			date_time_set($current_date, 0, 0, 0);
+			$last_date = date_create_from_format("Y-m-d", $trail[3]);
+			$diff_dates = date_diff($current_date, $last_date, TRUE);
+			$days_ago = (integer)$diff_dates->format( "%R%a" );
+
+			$color_trail = 'black';
+			if ($days_ago <= 1) {
+				$color_trail = 'green';
+			} else if ($days_ago <= 3) {
+				$color_trail = 'yellow';
+			} else {
+				$color_trail = 'red';
+			}
+
 			$overlay_cmd = <<<EOT
 var $var_name = L.geoJson(null, {
-    style: function(feature) {
-	return { color: 'green', weight: 3, opacity: 1 };
-    }
+	style: function(feature) {
+	return { color: '$color_trail', weight: 3, opacity: 1 };
+	}
 });
 EOT;
-		    } else if ($trail[3] == date("Y-m-d", strtotime("-2 days", current_time("timestamp"))) || $trail[3] == date("Y-m-d", strtotime("-3 days", current_time("timestamp")))) {
-			// Yellow overlay
-			$overlay_cmd = <<<EOT
-var $var_name = L.geoJson(null, {
-    style: function(feature) {
-	return { color: 'yellow', weight: 3, opacity: 1 };
-    }
-});
-EOT;
-		    } else {
-			// Red overlay
-			$overlay_cmd = <<<EOT
-var $var_name = L.geoJson(null, {
-    style: function(feature) {
-	return { color: 'red', weight: 3, opacity: 1 };
-    }
-});
-EOT;
-		    }
-                    $trail_name = esc_js($trail[2]);
 
-		    $content .= <<<EOT
+			$trail_name = esc_js($trail[2]);
+
+			$content .= <<<EOT
 
 $overlay_cmd
 
@@ -198,14 +194,13 @@ $cmd("$trail_name", null, $var_name)
 
 EOT;
 		}
-	    }
 	}
 
 	// Add the inReach KML feed, if it exists
 	if (file_exists(plugin_dir_path( __FILE__ ) . 'inreachFeed.kml')) {
-	    $feed = plugin_dir_url( __FILE__ ) . 'inreachFeed.kml';
+		$feed = plugin_dir_url( __FILE__ ) . 'inreachFeed.kml';
 
-	    $content .= <<<EOT
+		$content .= <<<EOT
 var pointsLayer = L.geoJson(null, {
 	filter: function(featureData, layer) {
 		// Only keep the point features, skip everything else
@@ -222,19 +217,19 @@ var pointsLayer = L.geoJson(null, {
 
 var inReach = omnivore.kml('$feed', null, pointsLayer).addTo(todaysGrooming);
 EOT;
+		}
+
+		$content .= "L.control.layers(null, overlays).addTo(mymap);\n";
+		$content .= '}</script>';
+
+		return $content;
 	}
+	add_shortcode('lhgr_map', 'lhgr_map_shortcode');
 
-	$content .= "L.control.layers(null, overlays).addTo(mymap);\n";
-	$content .= '}</script>';
+	function lhgr_list_shortcode($atts = [], $content = null)
+	{
 
-	return $content;
-    }
-    add_shortcode('lhgr_map', 'lhgr_map_shortcode');
-
-    function lhgr_list_shortcode($atts = [], $content = null)
-    {
-
-	$table_header = <<<EOT
+		$table_header = <<<EOT
 <table>
 	<tr>
 		<th>Trail Name</th>
@@ -243,31 +238,31 @@ EOT;
 	</tr>
 EOT;
 
-	$trail_categories = lhgr_get_all_trail_info();
+		$trail_categories = lhgr_get_all_trail_info();
 
-	foreach( $trail_categories as $key => $trail_category ) {
-	    $content .= '<h4>' . esc_html($key) . '</h4>';
+		foreach( $trail_categories as $key => $trail_category ) {
+			$content .= '<h4>' . esc_html($key) . '</h4>';
 
-	    $content .= $table_header;
+			$content .= $table_header;
 
-	    foreach( $trail_category as $trail ) {
-		$content .= '<tr><td>' . esc_html($trail[1]) . '</td>';
-		$content .= '<td>' . esc_html($trail[3]) . '</td>';
-		$content .= '<td>' . esc_html($trail[4]) . '</td></tr>';
-	    }
+			foreach( $trail_category as $trail ) {
+				$content .= '<tr><td>' . esc_html($trail[1]) . '</td>';
+				$content .= '<td>' . esc_html($trail[3]) . '</td>';
+				$content .= '<td>' . esc_html($trail[4]) . '</td></tr>';
+			}
 
-	    $content .= '</table>';
+			$content .= '</table>';
+		}
+
+		return $content;
 	}
+	add_shortcode('lhgr_list', 'lhgr_list_shortcode');
 
-	return $content;
-    }
-    add_shortcode('lhgr_list', 'lhgr_list_shortcode');
+	function lhgr_groomers_entry($atts = [], $content = null)
+	{
+		$action = esc_url( admin_url('admin-post.php') );
 
-    function lhgr_groomers_entry($atts = [], $content = null)
-    {
-	$action = esc_url( admin_url('admin-post.php') );
-
-	$content = <<<EOD
+		$content = <<<EOD
 <form action="$action" method="post" accept-charset="UTF-8" autocomplete="off" >
 <input type="hidden" name="action" value="lhgr_groomer_entry">
 <fieldset>
@@ -289,26 +284,29 @@ EOT;
 	<th>Current Comment</th>
 </tr>
 EOD;
-	$trail_categories = lhgr_get_all_trail_info(false);
+		$trail_categories = lhgr_get_all_trail_info(false);
 
-	foreach( $trail_categories as $key => $trail_category ) {
-	    $content .= '<tr><th colspan="4">' . esc_html($key) . '</th></tr>';
+		foreach( $trail_categories as $key => $trail_category ) {
+			$content .= '<tr><th colspan="4">' . esc_html($key) . '</th></tr>';
 
-	    foreach( $trail_category as $trail ) {
-		$content .= '<tr><td>' . esc_html($trail[1]) . '</td>';
-		$content .= '<td><input type="checkbox" name="groomed[' . esc_html($trail[0]) . ']" value="groomed" ></td>';
-		$content .= '<td><input type="text" name="comment[' . esc_html($trail[0]) . ']"/></td>';
-		$content .= '<td>' . esc_html($trail[3]) . '</td>';
-		$content .= '<td>' . esc_html($trail[4]) . '</td></tr>';
-	    }
+			// Sort the array alphabetically
+			natcasesort($trail_category);
+
+			foreach( $trail_category as $trail ) {
+				$content .= '<tr><td>' . esc_html($trail[1]) . '</td>';
+				$content .= '<td><input type="checkbox" name="groomed[' . esc_html($trail[0]) . ']" value="groomed"></td>';
+				$content .= '<td><input type="text" name="comment[' . esc_html($trail[0]) . ']"/></td>';
+				$content .= '<td>' . esc_html($trail[3]) . '</td>';
+				$content .= '<td>' . esc_html($trail[4]) . '</td></tr>';
+			}
+		}
+
+		$content .= '</table>';
+
+		$content .= '<input type="submit" value="Submit" /></form>';
+
+		return $content;
 	}
-
-	$content .= '</table>';
-
-	$content .= '<input type="submit" value="Submit" /></form>';
-
-	return $content;
-    }
-    add_shortcode('lhgr_groomer_entry', 'lhgr_groomers_entry');
+	add_shortcode('lhgr_groomer_entry', 'lhgr_groomers_entry');
 }
 add_action('init', 'lhgr_shortcode_init');
