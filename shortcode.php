@@ -168,9 +168,9 @@ EOD;
 			}
 
 			$color_trail = 'black';
-			if ($days_ago <= 1) {
+			if ($days_ago <= 0) {
 				$color_trail = 'green';
-			} else if ($days_ago <= 3) {
+			} else if ($days_ago <= 2) {
 				$color_trail = 'yellow';
 			} else {
 				$color_trail = 'red';
