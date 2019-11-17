@@ -160,8 +160,12 @@ EOD;
 			$current_date = date_create();
 			date_time_set($current_date, 0, 0, 0);
 			$last_date = date_create_from_format("Y-m-d", $trail[3]);
-			$diff_dates = date_diff($current_date, $last_date, TRUE);
-			$days_ago = (integer)$diff_dates->format( "%R%a" );
+			if ($last_date === FALSE) {
+				$days_ago = 365;
+			} else {
+				$diff_dates = date_diff($current_date, $last_date, TRUE);
+				$days_ago = (integer)$diff_dates->format( "%R%a" );
+			}
 
 			$color_trail = 'black';
 			if ($days_ago <= 1) {
