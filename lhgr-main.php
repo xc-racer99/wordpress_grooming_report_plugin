@@ -132,7 +132,7 @@ function gps_track_html($post)
 	     mymap.fitBounds(track.getBounds());
 	 });
 
-	 var tiles = L.tileLayer('<?php echo  esc_js(get_option('map_tiles')); ?>', {
+	 var tiles = L.tileLayer('<?php echo esc_js(get_option('map_tiles')); ?>', {
 	     maxZoom: <?php echo esc_js(get_option('map_max_zoom')); ?>,
 	     attribution: '<?php echo esc_js(get_option('map_attribute')); ?>'
 	 }).addTo(mymap);
@@ -194,7 +194,9 @@ function gps_track_html($post)
 			/* If the upload field has a file in it */
 			if(isset($_FILES['gpx_upload']) && ($_FILES['gpx_upload']['size'] > 0)) {
 			    /* Options array for the wp_handle_upload function. */
-			    $upload_overrides = array( 'action' => 'editpost', 'mimes' => array('gpx' => 'application/xml', 'kml' => 'application/xml') );
+			    $upload_overrides = array( 'action' => 'editpost',
+				'mimes' => array('gpx' => 'application/xml', 'kml' => 'application/xml'),
+				'test_type' => false );
 
 			    /* Store the current uploaded file name so we can delete it */
 			    $old_track = get_post_meta($post_id, 'gpx_track_file', true);
